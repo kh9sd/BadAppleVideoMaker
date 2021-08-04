@@ -1,8 +1,5 @@
-#import matplotlib.pyplot as plt
-#import matplotlib.image as mpimg
 import numpy as np
 import cv2
-#import os
 
 from operator import add
 from functools import reduce
@@ -37,7 +34,7 @@ def concatenate4(nw, ne, sw, se):
 def calculate_mean(img):
     """calculates the mean color of an image, returns np list"""
     # the image array has 2 dimensions and 2-4 channels for the color
-    # we take the mean across the dimension axes 0 and 1 to get our color channel
+    # we take the mean across the axes 0 and 1 to get our color channel
     pixel = np.mean(img, axis=(0, 1)).astype(np.uint8)
 
     if(pixel.shape[0] == 3):
@@ -46,7 +43,7 @@ def calculate_mean(img):
     elif(pixel.shape[0] == 4):
         return pixel
     else:
-        raise AttributeError("calculate_mean method requires RGB or RGBA images")
+        raise AttributeError("calculate_mean method requires RGB or RGBA")
 
 
 def checkEqual(myList):
@@ -93,7 +90,7 @@ def isWhite(pixel):
 
 
 def isWhiteish(pixel):
-    """tests if all channels in given pixel is greater than 128, aka whiteish"""
+    """tests if all channels in given pixel is greater than 100, aka whiteish"""
     # the last value in the array is transparency, we ignore it
     # print(pixel[:-1].shape)
     return np.all(pixel[:-1] >= 100)
@@ -150,8 +147,8 @@ class QuadTree:
                         return resized_Gimage
             else:
                 # tile gives us a same dimension image with mean color
-                # return np.tile(calculate_mean(self.img), (self.resolution[0], self.resolution[1], 1))
-                return outline(np.tile(calculate_mean(self.img), (self.resolution[0], self.resolution[1], 1)))
+                return np.tile(calculate_mean(self.img), (self.resolution[0], self.resolution[1], 1))
+                # return outline(np.tile(calculate_mean(self.img), (self.resolution[0], self.resolution[1], 1)))
 
         else:
             return concatenate4(

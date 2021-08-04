@@ -1,5 +1,6 @@
 #import matplotlib.pyplot as plt
 #import matplotlib.image as mpimg
+
 import numpy as np
 import cv2
 import os
@@ -41,7 +42,10 @@ def BPM_matching_index(fr, space):
 
 
 if __name__ == "__main__":
-    GIF_array = folder_import("C:\\Users\\kevin\\Desktop\\quadtree\\GIFFrames reordered")
+    dirname = os.path.dirname(__file__)
+
+    GIF_array = folder_import(os.path.join(dirname, 'GIFFrames'))
+
     # shitty hack, but for some reason array items' ids are really weird?
     GIF_array = tuple(GIF_array)
 
@@ -73,14 +77,14 @@ if __name__ == "__main__":
 
     currentFrame = 0
 
-    while(True):
+    while(currentFrame < 100):
         ret, frame = vidcap.read()
 
         if ret:
             quad = QuadTree().insert(frame, 6)
             fr = quad.get_image(6, GIF_array[BPM_matching_index(currentFrame, spacing)])
             # :0>4 makes it so it pads 0s at the front to get a length of 4
-            name = "C:\\Users\\kevin\\Desktop\\quadtree\\quadtreecode\\Frames\\frame{:0>4}.png".format(currentFrame)
+            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(currentFrame))
             print("Printing {}".format(currentFrame))
 
             cv2.imwrite(name, fr)
