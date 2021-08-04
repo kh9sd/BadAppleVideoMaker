@@ -7,9 +7,9 @@ from functools import reduce
 # quadtree code ripped from
 # https://medium.com/analytics-vidhya/transform-an-image-into-a-quadtree-39b3aa6e019a
 # for the most part
+
+
 # FUNCTIONS
-
-
 def split4(image):
     """split image into 4 smaller ones, returns array of 2D subarrays"""
     # produces array of 2, split along one axis
