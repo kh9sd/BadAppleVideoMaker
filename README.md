@@ -1,6 +1,7 @@
 # badappleamongus
 
-amogus 
+amogus
+
 works to create those bad apple memes you see on youtube like
 https://www.youtube.com/watch?v=UbaBI-XxGbo
 
