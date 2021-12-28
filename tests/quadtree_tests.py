@@ -8,19 +8,19 @@ class MyTestCase(unittest.TestCase):
 
     def check_equal(self):
         self.assertEqual(check_equal(np.array([[[1, 2], [3, 4]],
-                                                                    [[5, 6], [7, 8]]]),
-                                     False))
+                                               [[5, 6], [7, 8]]])),
+                         False)
 
         self.assertEqual(check_equal(np.array([[[1, 1], [1, 1]],
-                                                                    [[1, 1], [1, 1]]]),
-                                     True))
+                                               [[1, 1], [1, 1]]])),
+                         True)
 
         self.assertEqual(check_equal(np.array([[[1, 1, 1], [1, 1, 1]],
-                                                                    [[1, 1, 1], [1, 1, 1]]]),
-                                     True))
+                                               [[1, 1, 1], [1, 1, 1]]])),
+                         True)
         self.assertEqual(check_equal(np.array([[[1, 1, 1], [1, 1, 1]],
-                                                                    [[1, 1, 1], [1, 1, 2]]]),
-                                     True))
+                                               [[1, 1, 1], [1, 1, 2]]])),
+                         True)
 
     def test_white(self):
         self.assertEqual(is_white(np.array([255, 255, 255, 255])), True)
