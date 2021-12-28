@@ -1,5 +1,3 @@
-#import matplotlib.pyplot as plt
-#import matplotlib.image as mpimg
 import cProfile
 import numpy as np
 import cv2
@@ -42,21 +40,21 @@ def BPM_matching_index(fr, space):
 
 
 def main():
-    currentFrame = 0
+    cur_frame = 0
 
-    while(currentFrame < 100):
+    while cur_frame < 100:
         ret, frame = vidcap.read()
 
         if ret:
-            quad = QuadTree().insert(frame, 6)
-            fr = quad.get_image(6, GIF_array[BPM_matching_index(currentFrame, spacing)])
+            quad = QuadTree(frame, 6)
+            fr = quad.get_image(6, GIF_array[BPM_matching_index(cur_frame, spacing)])
             # :0>4 makes it so it pads 0s at the front to get a length of 4
-            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(currentFrame))
-            print("Printing {}".format(currentFrame))
+            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
+            print("Printing {}".format(cur_frame))
 
             cv2.imwrite(name, fr)
 
-            currentFrame += 1
+            cur_frame += 1
         else:
             break
 

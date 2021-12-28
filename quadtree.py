@@ -37,16 +37,16 @@ def calculate_mean(img):
     # we take the mean across the axes 0 and 1 to get our color channel
     pixel = np.mean(img, axis=(0, 1)).astype(np.uint8)
 
-    if(pixel.shape[0] == 3):
+    if pixel.shape[0] == 3:
         # add transparency channel
         return np.append(pixel, 255)
-    elif(pixel.shape[0] == 4):
+    elif pixel.shape[0] == 4:
         return pixel
     else:
         raise AttributeError("calculate_mean method requires RGB or RGBA")
 
 
-def checkEqual(myList):
+def check_equal(myList):
     """checking if all the colors in an np array are equal, returns bool"""
     first = myList[0]
     # myList is 2D, so (x==first) returns a list of booleans
@@ -70,7 +70,7 @@ def outline(image):
         return image
 
     # 3 channel vs 4 channel
-    if(image.shape[2] == 4):
+    if image.shape[2] == 4:
         var = white_bgr_trans
     else:
         var = white_bgr
@@ -84,12 +84,12 @@ def outline(image):
     return image
 
 
-def isWhite(pixel):
+def is_white(pixel):
     """tests if all channels in given pixel is 255, aka white"""
     return all(x == 255 for x in pixel[0:-2])
 
 
-def isWhiteish(pixel):
+def is_whiteish(pixel):
     """tests if all channels in given pixel is greater than 100, aka whiteish"""
     # the last value in the array is transparency, we ignore it
     # print(pixel[:-1].shape)
@@ -102,35 +102,29 @@ class QuadTree:
     white_bgrt = np.array([255, 255, 255, 255]).astype(np.uint8)
 
     """implementation of quadtree in python using above methods"""
-    def insert(self, img, limit, level=0):
+    def __init__(self, img, limit, level=0):
         """lets us insert into the quadtree, called recursively"""
-        # level tells us how far into the tree we are
         self.level = level
-        # self.mean = calculate_mean(img).astype(np.float64)
         # shape is a tuple, we call the first 2 entries to get the dimensions
-        self.resolution = (img.shape[0], img.shape[1])
-        self.isLeaf = True
-        self.allSame = checkEqual(img)
+        self.resolution = img.shape[0], img.shape[1]
+
         # if the image is not purely one color, we call for 4 subimages
-        if not self.allSame and level < limit:
+        if level < limit and not check_equal(img):
             split_img = split4(img)
 
-            # no longer leaf cuz we got subimages
             self.isLeaf = False
-            # btw, these vars arent out of scope, python is cool
-            self.nw = QuadTree().insert(split_img[0], limit, level + 1)
-            self.ne = QuadTree().insert(split_img[1], limit, level + 1)
-            self.sw = QuadTree().insert(split_img[2], limit, level + 1)
-            self.se = QuadTree().insert(split_img[3], limit, level + 1)
+            self.nw = QuadTree(split_img[0], limit, level + 1)
+            self.ne = QuadTree(split_img[1], limit, level + 1)
+            self.sw = QuadTree(split_img[2], limit, level + 1)
+            self.se = QuadTree(split_img[3], limit, level + 1)
         else:
+            self.isLeaf = True
             self.img = img
-
-        return self
 
     def get_image(self, level, img=None):
         """gives us the image from the quadtree"""
-        if(self.isLeaf or self.level == level):
-            if isWhiteish(calculate_mean(self.img)):
+        if self.isLeaf or self.level == level:
+            if is_whiteish(calculate_mean(self.img)):
                 if img is None:  # if no insert image is provided, also holy fuck "is" works but "==" doesnt
                     return np.tile(QuadTree.white_bgrt, (self.resolution[0], self.resolution[1], 1))
                 else:
