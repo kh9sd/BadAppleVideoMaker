@@ -33,37 +33,16 @@ def folder_import(folder_path):
     return np.asarray(images)
 
 
-def BPM_matching_index(fr, space):
+def bpm_matching_index(cur_f, space):
     """gets index of image that would fit in defined BPM"""
     """uses the current frame, the number of frames for a GIF image, and length of tuple"""
-    return int((fr//space) % len(GIF_array))
-
-
-def main():
-    cur_frame = 0
-
-    while cur_frame < 100:
-        ret, frame = vidcap.read()
-
-        if ret:
-            quad = QuadTree(frame, 6)
-            fr = quad.get_image(6, GIF_array[BPM_matching_index(cur_frame, spacing)])
-            # :0>4 makes it so it pads 0s at the front to get a length of 4
-            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
-            print("Printing {}".format(cur_frame))
-
-            cv2.imwrite(name, fr)
-
-            cur_frame += 1
-        else:
-            break
-
-    print("Done!")
-    vidcap.release()
-    cv2.destroyAllWindows()
+    return int((cur_f // space) % len(GIF_array))
 
 
 if __name__ == "__main__":
+    pr = cProfile.Profile()
+    pr.enable()
+
     dirname = os.path.dirname(__file__)
 
     GIF_array = folder_import(os.path.join(dirname, 'GIFFrames'))
@@ -97,7 +76,32 @@ if __name__ == "__main__":
     except OSError:
         print('Error: Creating directory of Frames')
 
-    cProfile.run('main()')
+    cur_frame = 0
+
+    while cur_frame < 100:
+        ret, frame = vidcap.read()
+
+        if ret:
+            quad = QuadTree(frame, 6)
+            index = bpm_matching_index(cur_frame, spacing)
+            fr = quad.get_image(6, index, GIF_array[index])
+            # :0>4 makes it so it pads 0s at the front to get a length of 4
+            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
+            print("Printing {}".format(cur_frame))
+
+            cv2.imwrite(name, fr)
+
+            cur_frame += 1
+        else:
+            break
+
+    print("Done!")
+    vidcap.release()
+    cv2.destroyAllWindows()
+
+    pr.disable()
+    pr.print_stats(sort='tottime')
+
 
 # ffmpeg command, NO CLUE how this works
 # ffmpeg -framerate 30 -i frame%04d.png -c:v libx264 -pix_fmt yuv420p output.mp4
