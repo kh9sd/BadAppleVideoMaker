@@ -1,6 +1,6 @@
 #import matplotlib.pyplot as plt
 #import matplotlib.image as mpimg
-
+import cProfile
 import numpy as np
 import cv2
 import os
@@ -41,6 +41,30 @@ def BPM_matching_index(fr, space):
     return int((fr//space) % len(GIF_array))
 
 
+def main():
+    currentFrame = 0
+
+    while(currentFrame < 100):
+        ret, frame = vidcap.read()
+
+        if ret:
+            quad = QuadTree().insert(frame, 6)
+            fr = quad.get_image(6, GIF_array[BPM_matching_index(currentFrame, spacing)])
+            # :0>4 makes it so it pads 0s at the front to get a length of 4
+            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(currentFrame))
+            print("Printing {}".format(currentFrame))
+
+            cv2.imwrite(name, fr)
+
+            currentFrame += 1
+        else:
+            break
+
+    print("Done!")
+    vidcap.release()
+    cv2.destroyAllWindows()
+
+
 if __name__ == "__main__":
     dirname = os.path.dirname(__file__)
 
@@ -75,28 +99,7 @@ if __name__ == "__main__":
     except OSError:
         print('Error: Creating directory of Frames')
 
-    currentFrame = 0
-
-    while(currentFrame < 100):
-        ret, frame = vidcap.read()
-
-        if ret:
-            quad = QuadTree().insert(frame, 6)
-            fr = quad.get_image(6, GIF_array[BPM_matching_index(currentFrame, spacing)])
-            # :0>4 makes it so it pads 0s at the front to get a length of 4
-            name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(currentFrame))
-            print("Printing {}".format(currentFrame))
-
-            cv2.imwrite(name, fr)
-
-            currentFrame += 1
-        else:
-            break
-
-    print("Done!")
-    vidcap.release()
-    cv2.destroyAllWindows()
-
+    cProfile.run('main()')
 
 # ffmpeg command, NO CLUE how this works
 # ffmpeg -framerate 30 -i frame%04d.png -c:v libx264 -pix_fmt yuv420p output.mp4

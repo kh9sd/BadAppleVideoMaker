@@ -135,7 +135,7 @@ class QuadTree:
                     return np.tile(QuadTree.white_bgrt, (self.resolution[0], self.resolution[1], 1))
                 else:
                     # log new values into dict, else just pull from dict to save time
-                    key = (hash(img.tobytes()),) + self.resolution
+                    key = hash(img.tobytes()), self.resolution
                     # print(key)
                     if key in GIF_dict:
                         return GIF_dict[key]
@@ -143,7 +143,7 @@ class QuadTree:
                         # resize takes the dimensions in reverse, kinda annoying
                         resized_Gimage = cv2.resize(img, self.resolution[::-1], interpolation=cv2.INTER_AREA)
                         GIF_dict[key] = resized_Gimage
-                        print("Logged with key: " + str(key))
+                        # print("Logged with key: " + str(key))
                         return resized_Gimage
             else:
                 # tile gives us a same dimension image with mean color
