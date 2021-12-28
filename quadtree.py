@@ -9,7 +9,6 @@ from functools import reduce
 # for the most part
 
 
-# FUNCTIONS
 def split4(image):
     """split image into 4 smaller ones, returns array of 2D subarrays"""
     # produces array of 2, split along one axis
@@ -46,13 +45,13 @@ def calculate_mean(img):
         raise AttributeError("calculate_mean method requires RGB or RGBA")
 
 
-def check_equal(myList):
+def check_equal(arr):
     """checking if all the colors in an np array are equal, returns bool"""
-    first = myList[0]
+    first = arr[0]
     # myList is 2D, so (x==first) returns a list of booleans
     # we check that all those booleans are satisfied
     # the outer all makes sure the alls all hold through the other dimension
-    return all((x == first).all() for x in myList)
+    return all((x == first).all() for x in arr)
 
 
 def outline(image):
