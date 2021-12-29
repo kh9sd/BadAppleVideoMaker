@@ -1,7 +1,10 @@
 # badappleamongus
 
 ### Example
+![hqdefault](https://user-images.githubusercontent.com/41244296/147705872-c63355dd-8fbb-41a2-b2a8-09aefaa19d4c.jpg)
+
 [Link to example video produced from this program](https://youtu.be/sa2PF5ubspY)
+
 
 ## How to use it
 
