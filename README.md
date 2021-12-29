@@ -1,9 +1,11 @@
 # badappleamongus
 
-amogus
+### Example
+[Link to example video produced from this program](https://youtu.be/sa2PF5ubspY)
 
-works to create those bad apple memes you see on youtube like
-https://www.youtube.com/watch?v=UbaBI-XxGbo
+## How to use it
+
+CURRENTLY UNDER MAINTENANCE, will be updated in the future
 
 download the shit and run the master.py
 
