@@ -58,7 +58,7 @@ def concatenate4(nw, ne, sw, se):
 
 def calculate_mean(img):
     """
-    Finds the mean color of an image
+    Finds and returns the mean color of an image, in RGBA
 
     Parameters:
         img: numpy array
@@ -101,18 +101,22 @@ def check_equal(arr):
     return all((x == first).all() for x in arr)
 
 
-def outline(image):
+def outline(image, option=0):
     """
-    Outlines a image if at least 3x3
+    Outlines a BGR or BGRA image if at least 3x3
 
     Parameters:
         image: numpy array
+        option: color for outline, default is 0
+                if 0, white outline
+                if 1, red outline
 
     Returns numpy array with borders colored if at least 3x3, else returns unchanged
-    """
-    red_bgr_trans = (255 * np.array([0.14117648, 0.10980392, 0.92941177, 1.0])).astype(np.uint8)
-    red_bgr = (255 * np.array([0.14117648, 0.10980392, 0.92941177])).astype(np.uint8)
 
+    Raises ValueError for invalid color option
+    """
+    red_bgr_trans = np.array([36, 28, 237, 255]).astype(np.uint8)
+    red_bgr = np.array([36, 28, 237]).astype(np.uint8)
     white_bgr_trans = np.array([255, 255, 255, 255]).astype(np.uint8)
     white_bgr = np.array([255, 255, 255]).astype(np.uint8)
 
@@ -122,11 +126,18 @@ def outline(image):
     if image.shape[0] < 3 or image.shape[1] < 3:
         return image
 
-    # 3 channel vs 4 channel
-    if image.shape[2] == 4:
-        var = white_bgr_trans
+    if option == 0:
+        if image.shape[2] == 4:
+            var = white_bgr_trans
+        else:
+            var = white_bgr
+    elif option == 1:
+        if image.shape[2] == 4:
+            var = red_bgr_trans
+        else:
+            var = red_bgr
     else:
-        var = white_bgr
+        raise ValueError("Invalid color option, not 0 or 1")
 
     image[0, :] = var
     image[rows-1, :] = var
@@ -139,7 +150,7 @@ def outline(image):
 
 def is_white(pixel):
     """
-    Tests if all color channels in given RGB or RGBA pixel is 255, aka white
+    Tests if all color channels in given BGR or BGRA pixel is 255, aka white
 
     Parameters:
         pixel: numpy array, 1D and length 3 or 4
@@ -157,7 +168,7 @@ def is_white(pixel):
 
 def is_whiteish(pixel, constant=100):
     """
-    Tests if all color channels in given RGB or RGBA pixel is above a given constant
+    Tests if all color channels in given BGR or BGRA pixel is above a given constant
 
     Parameters:
         pixel: numpy array, 1D and length 3 or 4
@@ -175,7 +186,7 @@ def is_whiteish(pixel, constant=100):
 
 
 class QuadTree:
-    black_bgrt = (255 * np.array([0, 0, 0, 1])).astype(np.uint8)
+    black_bgrt = np.array([0, 0, 0, 255]).astype(np.uint8)
     white_bgrt = np.array([255, 255, 255, 255]).astype(np.uint8)
 
     def __init__(self, img, limit, level=0):
@@ -211,7 +222,7 @@ class QuadTree:
         else:
             self.is_leaf = True
 
-    def get_image(self, level, img_id, img=None):
+    def get_image(self, level, img_id, img=None, has_outline=False):
         """
         Returns image from inserting image into quadtree
 
@@ -220,6 +231,8 @@ class QuadTree:
               img_id: id for given image
                     if id matches, then img should be the same
               img: numpy array, default None
+              has_outline: option for outlining rectangles
+                default is False, 0 for white and 1 for red
 
         Returns image as numpy array
         """
@@ -228,27 +241,26 @@ class QuadTree:
                 if img is None:
                     return np.tile(QuadTree.white_bgrt, (self.resolution[0], self.resolution[1], 1))
                 else:
-                    # log new values into dict, else just pull from dict to save time
                     key = img_id, self.resolution
-                    # print(key)
+
                     if key in GIF_dict:
                         return GIF_dict[key]
                     else:
                         # resize takes the dimensions in reverse, kinda annoying
                         resized_frame = cv2.resize(img, self.resolution[::-1], interpolation=cv2.INTER_AREA)
                         GIF_dict[key] = resized_frame
-                        # print("Logged with key: " + str(key))
                         return resized_frame
             else:
-                return np.tile(calculate_mean(self.img), (self.resolution[0], self.resolution[1], 1))
-                # return outline(np.tile(calculate_mean(self.img), (self.resolution[0], self.resolution[1], 1)))
+                if has_outline is False:
+                    return np.tile(calculate_mean(self.img), (*self.resolution, 1))
+                return outline(np.tile(calculate_mean(self.img), (*self.resolution, 1)), has_outline)
 
         else:
             return concatenate4(
-                self.nw.get_image(level, img_id, img),
-                self.ne.get_image(level, img_id, img),
-                self.sw.get_image(level, img_id, img),
-                self.se.get_image(level, img_id, img))
+                self.nw.get_image(level, img_id, img, has_outline),
+                self.ne.get_image(level, img_id, img, has_outline),
+                self.sw.get_image(level, img_id, img, has_outline),
+                self.se.get_image(level, img_id, img, has_outline))
 
 
 # cache lol
