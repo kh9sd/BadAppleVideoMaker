@@ -6,7 +6,16 @@ from quadtree import QuadTree
 
 
 def folder_import(folder_path):
-    """get images from folder into np array, returns 4 channels"""
+    """
+    Imports images from folder into list of numpy arrays
+
+    Parameters:
+        folder_path: string, path to folder with JUST images in it
+
+    Returns list of numpy arrays, which array being a BGRA image
+
+    Raises ValueError if images aren't BGRA or BGR
+    """
     images = []
 
     for file in os.listdir(folder_path):
@@ -17,26 +26,46 @@ def folder_import(folder_path):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             image = np.concatenate([image[..., np.newaxis]]*3, axis=2)
 
-        else:
+            trans_layer = np.tile(255, (image.shape[0], image.shape[1], 1)).astype(np.uint8)
+            image = np.concatenate((image, trans_layer), axis=2)
+
+        elif image.shape[2] == 4:
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
             image = np.concatenate([image[..., np.newaxis]]*3, axis=2)
 
-        trans_layer = np.tile(255, (image.shape[0], image.shape[1], 1)).astype(np.uint8)
-
-        image = np.concatenate((image, trans_layer), axis=2)
+        else:
+            raise ValueError("SOmething fucked up, images not read as BGRA or BGR")
 
         # print(image.shape)
         # print(image)
         # cv2.imshow("shit", image)
         images.append(image)
 
-    return np.asarray(images)
+    return images
 
 
-def bpm_matching_index(cur_f, space):
+def bpm_matching_index(cur_f, bps, fps):
     """gets index of image that would fit in defined BPM"""
-    """uses the current frame, the number of frames for a GIF image, and length of tuple"""
-    return int((cur_f // space) % len(GIF_array))
+    """
+    Finds appropriate index to cycle through GIF array to match a given BPS and FPS
+    
+    Parameters:
+        cur_f: current frame of the video
+        bps: beats per second of the video
+        fps: frames per second of the video
+        
+    Also takes length of global GIF_array
+    
+    Returns int
+    """
+    # seconds per frame
+    spf = 1 / fps
+    # seconds for each GIF image
+    seconds_per_gimage = 1 / (bps * len(GIF_array))
+    # number of frames that fit into a single GIF image
+    spacing = seconds_per_gimage / spf
+
+    return int((cur_f // spacing) % len(GIF_array))
 
 
 if __name__ == "__main__":
@@ -47,34 +76,19 @@ if __name__ == "__main__":
 
     GIF_array = folder_import(os.path.join(dirname, 'GIFFrames'))
 
-    # shitty hack, but for some reason array items' ids are really weird?
-    GIF_array = tuple(GIF_array)
-
     # frames per second when converting the frames to mp4
     FPS = 30
-
     # beats per second of song, synchronize GIF cycle to it
-    BPS = 138/60
-
-    # seconds per frame
-    SPF = 1/FPS
-
-    # seconds for each GIF image
-    seconds_per_gimage = 1/(BPS * len(GIF_array))
-
-    # number of frames that fit into a single GIF image
-    spacing = seconds_per_gimage/SPF
+    BPS = 138 / 60
 
     vidcap = cv2.VideoCapture("BadApple.mp4")
 
     try:
-        # creating a folder named data
         if not os.path.exists('Frames'):
             os.makedirs('Frames')
 
-    # if not created then raise error
     except OSError:
-        print('Error: Creating directory of Frames')
+        raise OSError('Could not create directory of Frames')
 
     cur_frame = 0
 
@@ -83,8 +97,8 @@ if __name__ == "__main__":
 
         if ret:
             quad = QuadTree(frame, 6)
-            index = bpm_matching_index(cur_frame, spacing)
-            fr = quad.get_image(6, index, GIF_array[index])
+            index = bpm_matching_index(cur_frame, BPS, FPS)
+            fr = quad.get_image(6, index, GIF_array[index], has_outline=0)
             # :0>4 makes it so it pads 0s at the front to get a length of 4
             name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
             print("Printing {}".format(cur_frame))
