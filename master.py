@@ -5,36 +5,46 @@ import os
 from quadtree import QuadTree
 
 
-def folder_import(folder_path):
+def add_trans_layer(img):
+    if img.shape[2] != 3:
+        raise ValueError("Image must be 3 channel to add alpha layer")
+
+    trans_layer = np.tile(255, (img.shape[0], img.shape[1], 1)).astype(np.uint8)
+    return np.concatenate((img, trans_layer), axis=2)
+
+
+def folder_import(folder_path, mode=-1):
     """
     Imports images from folder into list of numpy arrays
 
     Parameters:
         folder_path: string, path to folder with JUST images in it
+        mode: how the image files are read
+            1 is cv2.IMREAD_COLOR
+            0 is cv2.IMREAD_GRAYSCALE
+            -1 is cv2.IMREAD_UNCHANGED
 
     Returns list of numpy arrays, which array being a BGRA image
 
     Raises ValueError if images aren't BGRA or BGR
     """
+
     images = []
 
     for file in os.listdir(folder_path):
-        image = cv2.imread(os.path.join(folder_path, file), cv2.IMREAD_UNCHANGED)
+        image = cv2.imread(os.path.join(folder_path, file), mode)
 
-        # if no alpha channel in image, add one
-        if image.shape[2] == 3:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            image = np.concatenate([image[..., np.newaxis]]*3, axis=2)
-
-            trans_layer = np.tile(255, (image.shape[0], image.shape[1], 1)).astype(np.uint8)
-            image = np.concatenate((image, trans_layer), axis=2)
-
-        elif image.shape[2] == 4:
-            image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
-            image = np.concatenate([image[..., np.newaxis]]*3, axis=2)
-
-        else:
-            raise ValueError("SOmething fucked up, images not read as BGRA or BGR")
+        if mode == 0:  # grayscale, shape is (x,y) not (x,y,z)
+            image = add_trans_layer(np.concatenate([image[..., np.newaxis]]*3, axis=2))  # give new axis, dup 3 channels
+        elif mode == 1:  # color
+            image = add_trans_layer(image)
+        elif mode == -1:  # unchanged
+            if image.shape[2] == 3:  # if BGR for some reason not BGRA?
+                image = add_trans_layer(image)
+            elif image.shape[2] == 4:
+                pass
+            else:
+                raise ValueError("Something fucked up, images not read as BGRA or BGR")
 
         # print(image.shape)
         # print(image)
@@ -98,7 +108,7 @@ if __name__ == "__main__":
         if ret:
             quad = QuadTree(frame, 6)
             index = bpm_matching_index(cur_frame, BPS, FPS)
-            fr = quad.get_image(6, index, GIF_array[index], has_outline=0)
+            fr = quad.get_image(6, index, GIF_array[index])
             # :0>4 makes it so it pads 0s at the front to get a length of 4
             name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
             print("Printing {}".format(cur_frame))
