@@ -206,8 +206,7 @@ class QuadTree:
             img: img given to it
         """
         self.level = level
-        # shape is a tuple, we call the first 2 entries to get the dimensions
-        self.resolution = img.shape[0], img.shape[1]
+        self.resolution = img.shape[:2]
         self.img = img
 
         # if the image is not purely one color, we call for 4 subimages
