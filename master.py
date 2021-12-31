@@ -2,6 +2,7 @@ import cProfile
 import numpy as np
 import cv2
 import os
+import subprocess
 from quadtree import QuadTree
 
 
@@ -79,8 +80,9 @@ def bpm_matching_index(cur_f, bps, fps):
 
 
 if __name__ == "__main__":
-    pr = cProfile.Profile()
-    pr.enable()
+
+    # pr = cProfile.Profile()
+    # pr.enable()
 
     dirname = os.path.dirname(__file__)
 
@@ -123,8 +125,15 @@ if __name__ == "__main__":
     vidcap.release()
     cv2.destroyAllWindows()
 
-    pr.disable()
-    pr.print_stats(sort='tottime')
+    os.chdir(os.path.join(dirname, "Frames")) # basically just running the ffmpeg command below
+    subprocess.call(["ffmpeg", "-framerate", "30", "-i",
+                     "frame%04d.png", "-c:v", "libx264",
+                     "-pix_fmt", "yuv420p", "output.mp4"])
+    subprocess.call(["ffmpeg", "-i", "output.mp4", "-i", "badapple.mp3", "-shortest", "done.mp4"])
+    os.remove("output.mp4")
+
+    # pr.disable()
+    # pr.print_stats(sort='tottime')
 
 
 # ffmpeg command, NO CLUE how this works
