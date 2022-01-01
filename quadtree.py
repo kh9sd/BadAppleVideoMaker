@@ -202,11 +202,11 @@ class QuadTree:
             resolution: tuple, height and width of the node
             is_leaf: Boolean, whether or not node has children
             nw, ne, sw, se: QuadTree, holds child nodes
-            img: img given to it
+            mean_color: calculated mean color on img given, BGRA numpy pixel
         """
         self.level = level
         self.resolution = img.shape[:2]
-        self.img = img
+        self.mean_color = calculate_mean(img)
 
         # if the image is not purely one color, we call for 4 subimages
         if level < limit and not check_equal(img):
@@ -217,6 +217,7 @@ class QuadTree:
             self.ne = QuadTree(split_img[1], limit, level + 1)
             self.sw = QuadTree(split_img[2], limit, level + 1)
             self.se = QuadTree(split_img[3], limit, level + 1)
+
         else:
             self.is_leaf = True
 
@@ -235,9 +236,9 @@ class QuadTree:
         Returns image as numpy array
         """
         if self.is_leaf or self.level == level:
-            if is_whiteish(calculate_mean(self.img)):
+            if is_whiteish(self.mean_color):
                 if img is None:
-                    return np.tile(QuadTree.white_bgrt, (self.resolution[0], self.resolution[1], 1))
+                    return np.tile(QuadTree.white_bgrt, (*self.resolution, 1))
                 else:
                     key = img_id, self.resolution
 
@@ -250,8 +251,8 @@ class QuadTree:
                         return resized_frame
             else:
                 if has_outline is False:
-                    return np.tile(calculate_mean(self.img), (*self.resolution, 1))
-                return outline(np.tile(calculate_mean(self.img), (*self.resolution, 1)), has_outline)
+                    return np.tile(self.mean_color, (*self.resolution, 1))
+                return outline(np.tile(self.mean_color, (*self.resolution, 1)), has_outline)
 
         else:
             return concatenate4(
