@@ -1,9 +1,11 @@
 import cProfile
 import numpy as np
 import cv2
+import random
 import os
 import subprocess
 from quadtree import QuadTree
+from string import ascii_lowercase, ascii_uppercase
 
 
 def add_trans_layer(img):
@@ -118,7 +120,7 @@ if __name__ == "__main__":
         if ret:
             quad = QuadTree(frame, 6)
             index = bpm_matching_index(cur_frame, BPS, FPS)
-            fr = quad.get_image(6, index, GIF_array[index])
+            fr = quad.get_image(6, index, GIF_array[index], 1)
             # :0>4 makes it so it pads 0s at the front to get a length of 4
             name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
             print("Printing {}".format(cur_frame))
@@ -133,11 +135,12 @@ if __name__ == "__main__":
     vidcap.release()
     cv2.destroyAllWindows()
 
-    os.chdir(os.path.join(dirname, "Frames")) # basically just running the ffmpeg command below
+    final_name = ''.join(random.choice(ascii_lowercase + ascii_uppercase) for i in range(10)) + ".mp4"
+    os.chdir(os.path.join(dirname, "Frames"))  # basically just running the ffmpeg command below
     subprocess.call(["ffmpeg", "-framerate", "30", "-i",
                      "frame%04d.png", "-c:v", "libx264",
                      "-pix_fmt", "yuv420p", "output.mp4"])
-    subprocess.call(["ffmpeg", "-i", "output.mp4", "-i", "badapple.mp3", "-shortest", "done.mp4"])
+    subprocess.call(["ffmpeg", "-i", "output.mp4", "-i", "badapple.mp3", "-shortest", final_name])
     os.remove("output.mp4")
 
     # pr.disable()
