@@ -50,7 +50,6 @@ def concatenate4(nw, ne, sw, se):
         nw ne
         sw se
     """
-    # concatenate just merges the arrays, we just do it on the two dimensions
     top = np.concatenate((nw, ne), axis=1)
     bottom = np.concatenate((sw, se), axis=1)
     return np.concatenate((top, bottom), axis=0)
@@ -58,12 +57,12 @@ def concatenate4(nw, ne, sw, se):
 
 def calculate_mean(img):
     """
-    Finds and returns the mean color of an image, in RGBA
+    Finds and returns the mean color of an image, in BGRA
 
     Parameters:
         img: numpy array
 
-    Returns a numpy array with 4 channels, RGBA. If input was RGB, adds A channel
+    Returns a numpy array with 4 channels, BGRA. If input was BGR, adds A channel
 
     Raises AttributeError if doesn't have 3 or 4 channels after meaning
     """
@@ -77,7 +76,7 @@ def calculate_mean(img):
     elif pixel.shape[0] == 4:
         return pixel
     else:
-        raise AttributeError("calculate_mean method requires RGB or RGBA")
+        raise AttributeError("calculate_mean method requires BGR or BGRA")
 
 
 def check_equal(arr):
