@@ -7,6 +7,16 @@ from quadtree import QuadTree
 
 
 def add_trans_layer(img):
+    """
+    Adds alpha channel to numpy array if BGR
+
+    Parameters:
+        img: numpy array
+
+    Returns numpy array with added 4th channel in axis 2
+
+    Raises ValueError if 2nd axis isn't 3 channel
+    """
     if img.shape[2] != 3:
         raise ValueError("Image must be 3 channel to add alpha layer")
 
@@ -29,7 +39,6 @@ def folder_import(folder_path, mode=-1):
 
     Raises ValueError if images aren't BGRA or BGR
     """
-
     images = []
 
     for file in os.listdir(folder_path):
@@ -56,7 +65,6 @@ def folder_import(folder_path, mode=-1):
 
 
 def bpm_matching_index(cur_f, bps, fps):
-    """gets index of image that would fit in defined BPM"""
     """
     Finds appropriate index to cycle through GIF array to match a given BPS and FPS
     
