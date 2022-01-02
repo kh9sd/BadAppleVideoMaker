@@ -1,4 +1,4 @@
-import cProfile
+# import cProfile
 import numpy as np
 import cv2
 import random
@@ -89,8 +89,30 @@ def bpm_matching_index(cur_f, bps, fps):
     return int((cur_f // spacing) % len(GIF_array))
 
 
-if __name__ == "__main__":
+def input_outline():
+    """
+    Asks for and processes user input for outline color
 
+    Returns None if user rejects, else returns color as BGRA (4,) numpy array
+    """
+    if input("Do you want you want to outline images? Enter y to procced, anything else to decline\n") == "y":
+        while True:
+            raw_tup = input("Type BGRA color, formatted like 0,0,0,255\n")
+            try:
+                tup = tuple(int(x) for x in raw_tup.split(","))
+
+                if len(tup) == 4 and all(0 <= i <= 255 for i in tup):
+                    print("Accepted", tup, "as color")
+                    return np.array(tup).astype(np.uint8)
+                else:
+                    print("Invalid input, must be length 4 and all numbers in [0, 255]")
+
+            except ValueError:  # from int(x)
+                print("Have to be numbers moron")
+    return None
+
+
+if __name__ == "__main__":
     # pr = cProfile.Profile()
     # pr.enable()
 
@@ -103,6 +125,8 @@ if __name__ == "__main__":
     # beats per second of song, synchronize GIF cycle to it
     BPS = 138 / 60
 
+    outline_color = input_outline()
+
     vidcap = cv2.VideoCapture("BadApple.mp4")
 
     try:
@@ -114,13 +138,13 @@ if __name__ == "__main__":
 
     cur_frame = 0
 
-    while cur_frame < 100:
+    while cur_frame < 50:
         ret, frame = vidcap.read()
 
         if ret:
             quad = QuadTree(frame, 6)
             index = bpm_matching_index(cur_frame, BPS, FPS)
-            fr = quad.get_image(6, index, GIF_array[index], 1)
+            fr = quad.get_image(6, index, GIF_array[index], outline_color)
             # :0>4 makes it so it pads 0s at the front to get a length of 4
             name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
             print("Printing {}".format(cur_frame))
@@ -142,6 +166,8 @@ if __name__ == "__main__":
                      "-pix_fmt", "yuv420p", "output.mp4"])
     subprocess.call(["ffmpeg", "-i", "output.mp4", "-i", "badapple.mp3", "-shortest", final_name])
     os.remove("output.mp4")
+
+    print("Done!")
 
     # pr.disable()
     # pr.print_stats(sort='tottime')
