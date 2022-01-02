@@ -100,49 +100,28 @@ def check_equal(arr):
     return all((x == first).all() for x in arr)
 
 
-def outline(image, option=0):
+def outline(image, color):
     """
     Outlines a BGR or BGRA image if at least 3x3
 
     Parameters:
         image: numpy array
-        option: color for outline, default is 0
-                if 0, white outline
-                if 1, red outline
+        color: 4 channel numpy array
 
     Returns numpy array with borders colored if at least 3x3, else returns unchanged
 
     Raises ValueError for invalid color option
     """
-    red_bgr_trans = np.array([36, 28, 237, 255]).astype(np.uint8)
-    red_bgr = np.array([36, 28, 237]).astype(np.uint8)
-    white_bgr_trans = np.array([255, 255, 255, 255]).astype(np.uint8)
-    white_bgr = np.array([255, 255, 255]).astype(np.uint8)
-
     rows, cols = image.shape[0], image.shape[1]
 
-    # do nothing if not at least 3x3
-    if image.shape[0] < 3 or image.shape[1] < 3:
-        return image
+    if image.shape[2] != 4:
+        raise ValueError(f"Inputted image with shape {image.shape} must be BGRA with 4 channels")
 
-    if option == 0:
-        if image.shape[2] == 4:
-            var = white_bgr_trans
-        else:
-            var = white_bgr
-    elif option == 1:
-        if image.shape[2] == 4:
-            var = red_bgr_trans
-        else:
-            var = red_bgr
-    else:
-        raise ValueError("Invalid color option, not 0 or 1")
-
-    image[0, :] = var
-    image[rows-1, :] = var
+    image[0, :] = color
+    image[rows-1, :] = color
     # technically doubles on the corners, but more readable
-    image[:, 0] = var
-    image[:, cols-1] = var
+    image[:, 0] = color
+    image[:, cols-1] = color
 
     return image
 
@@ -221,7 +200,7 @@ class QuadTree:
         else:
             self.is_leaf = True
 
-    def get_image(self, level, img_id, img=None, has_outline=False):
+    def get_image(self, level, img_id, img=None, outline_color=None):
         """
         Returns image from inserting image into quadtree
 
@@ -230,7 +209,7 @@ class QuadTree:
               img_id: id for given image
                     if id matches, then img should be the same
               img: numpy array, default None
-              has_outline: option for outlining rectangles
+              outline_color: option for outlining rectangles
                 default is False, 0 for white and 1 for red
 
         Returns image as numpy array
@@ -250,16 +229,16 @@ class QuadTree:
                         GIF_dict[key] = resized_frame
                         return resized_frame
             else:
-                if has_outline is False:
+                if outline_color is None:
                     return np.tile(self.mean_color, (*self.resolution, 1))
-                return outline(np.tile(self.mean_color, (*self.resolution, 1)), has_outline)
+                return outline(np.tile(self.mean_color, (*self.resolution, 1)), outline_color)
 
         else:
             return concatenate4(
-                self.nw.get_image(level, img_id, img, has_outline),
-                self.ne.get_image(level, img_id, img, has_outline),
-                self.sw.get_image(level, img_id, img, has_outline),
-                self.se.get_image(level, img_id, img, has_outline))
+                self.nw.get_image(level, img_id, img, outline_color),
+                self.ne.get_image(level, img_id, img, outline_color),
+                self.sw.get_image(level, img_id, img, outline_color),
+                self.se.get_image(level, img_id, img, outline_color))
 
 
 # cache lol
