@@ -43,21 +43,24 @@ def folder_import(folder_path, mode=-1):
     """
     images = []
 
-    for file in os.listdir(folder_path):
+    for file in sorted(os.listdir(folder_path)):  # os.listdir does not guarantee sort by name otherwise
         image = cv2.imread(os.path.join(folder_path, file), mode)
 
-        if mode == 0:  # grayscale, shape is (x,y) not (x,y,z)
-            image = add_trans_layer(np.concatenate([image[..., np.newaxis]]*3, axis=2))  # give new axis, dup 3 channels
-        elif mode == 1:  # color
-            image = add_trans_layer(image)
-        elif mode == -1:  # unchanged
-            if image.shape[2] == 3:  # if BGR for some reason not BGRA?
+        if image is not None: # reading non images will output None
+            if mode == 0:  # grayscale, shape is (x,y) not (x,y,z)
+                image = add_trans_layer(np.concatenate([image[..., np.newaxis]]*3, axis=2))  # give new axis, dup 3 channels
+            elif mode == 1:  # color
                 image = add_trans_layer(image)
-            elif image.shape[2] == 4:
-                pass
-            else:
-                raise ValueError("Something fucked up, images not read as BGRA or BGR")
-
+            elif mode == -1:  # unchanged
+                if image.shape[2] == 3:  # if BGR for some reason not BGRA?
+                    image = add_trans_layer(image)
+                elif image.shape[2] == 4:
+                    pass
+                else:
+                    raise ValueError("Something fucked up, images not read as BGRA or BGR")
+            print("Successfully imported", file)
+        else:
+            print("Failed image read on", file)
         # print(image.shape)
         # print(image)
         # cv2.imshow("shit", image)
@@ -112,33 +115,49 @@ def input_outline():
     return None
 
 
+def input_color_output():
+    while True:
+        try:
+            mode = int(input("How would you like your images imported? 1 for color, "
+                             "0 for grayscale, -1 for unchanged (reads transparency)\n"))
+            if mode in (1, 0, -1):
+                print("Accepted")
+                return mode
+
+            print("Invalid number, retry")
+        except ValueError:
+            print("Type a number moron")
+
+
+def master_input():
+    return input_color_output(), input_outline()
+
+
 if __name__ == "__main__":
     # pr = cProfile.Profile()
     # pr.enable()
-
-    dirname = os.path.dirname(__file__)
-
-    GIF_array = folder_import(os.path.join(dirname, 'GIFFrames'))
 
     # frames per second when converting the frames to mp4
     FPS = 30
     # beats per second of song, synchronize GIF cycle to it
     BPS = 138 / 60
 
-    outline_color = input_outline()
+    color_mode, outline_color = master_input()
+
+    dirname = os.path.dirname(__file__)
+    GIF_array = folder_import(os.path.join(dirname, 'GIFFrames'), color_mode)
 
     vidcap = cv2.VideoCapture("BadApple.mp4")
 
     try:
         if not os.path.exists('Frames'):
             os.makedirs('Frames')
-
     except OSError:
         raise OSError('Could not create directory of Frames')
 
     cur_frame = 0
 
-    while cur_frame < 50:
+    while cur_frame < 100:
         ret, frame = vidcap.read()
 
         if ret:
@@ -147,7 +166,9 @@ if __name__ == "__main__":
             fr = quad.get_image(6, index, GIF_array[index], outline_color)
             # :0>4 makes it so it pads 0s at the front to get a length of 4
             name = os.path.join(dirname, "Frames", "frame{:0>4}.png".format(cur_frame))
-            print("Printing {}".format(cur_frame))
+
+            if cur_frame % 50 == 0:
+                print(f"On frame {cur_frame}")
 
             cv2.imwrite(name, fr)
 
