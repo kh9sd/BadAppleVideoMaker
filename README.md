@@ -10,7 +10,7 @@ for any frames of their choosing in the GIFFrames folder.
 ### Examples
 *Example frame produced:*
 
-![hqdefault](https://user-images.githubusercontent.com/41244296/147705872-c63355dd-8fbb-41a2-b2a8-09aefaa19d4c.jpg)
+![hqdefault](https://i.imgur.com/AORXQo3.png)
 
 [Link to example video produced from this program](https://youtu.be/HY5lOaCbdmY)
 
