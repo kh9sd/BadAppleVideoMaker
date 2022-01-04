@@ -46,9 +46,9 @@ def folder_import(folder_path, mode=-1):
     for file in sorted(os.listdir(folder_path)):  # os.listdir does not guarantee sort by name otherwise
         image = cv2.imread(os.path.join(folder_path, file), mode)
 
-        if image is not None: # reading non images will output None
+        if image is not None:  # reading non images will output None
             if mode == 0:  # grayscale, shape is (x,y) not (x,y,z)
-                image = add_trans_layer(np.concatenate([image[..., np.newaxis]]*3, axis=2))  # give new axis, dup 3 channels
+                image = add_trans_layer(np.concatenate([image[..., np.newaxis]]*3, axis=2))  # dup 3 channels
             elif mode == 1:  # color
                 image = add_trans_layer(image)
             elif mode == -1:  # unchanged
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
     cur_frame = 0
 
-    while cur_frame < 100:
+    while True:
         ret, frame = vidcap.read()
 
         if ret:
