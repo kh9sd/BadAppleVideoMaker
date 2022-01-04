@@ -8,9 +8,10 @@ The default images are the classic modern piece known as "amogus twerk". They ca
 for any frames of their choosing in the GIFFrames folder.
 
 ### Examples
-*Example frame produced:*
+*Example frames produced:*
 
 ![hqdefault](https://i.imgur.com/AORXQo3.png)
+![more](https://i.imgur.com/6Lu2nn9.png)
 
 [Link to example video produced from this program](https://youtu.be/HY5lOaCbdmY)
 
